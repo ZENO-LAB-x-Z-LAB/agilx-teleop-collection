@@ -16,6 +16,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
+if __package__:
+    from . import can_setup
+else:
+    import can_setup
+
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
@@ -325,6 +330,25 @@ def can_interface(side: str, role: str) -> str:
     defaults = {("left", "leader"): "can_ml", ("right", "leader"): "can_mr",
                 ("left", "follower"): "can_sl", ("right", "follower"): "can_sr"}
     return os.environ.get(f"NERO_{side.upper()}_{role.upper()}_CAN") or defaults[side, role]
+
+
+def selected_can_interfaces(scope: str, roles: Sequence[str]) -> dict[str, str]:
+    sides = ("left", "right") if scope == "dual" else (scope,)
+    side_names = {"left": "左", "right": "右"}
+    role_names = {"leader": "主臂", "follower": "从臂"}
+    return {
+        side_names[side] + role_names[role]: can_interface(side, role)
+        for side in sides for role in roles
+    }
+
+
+def enable_selected_can(interfaces: Mapping[str, str], bitrate: int) -> bool:
+    try:
+        can_setup.ensure_can_up(interfaces, bitrate)
+    except (OSError, RuntimeError, ValueError) as exc:
+        print(f"[CAN] {exc}", flush=True)
+        return False
+    return True
 
 
 def build_activation_command(
@@ -922,6 +946,34 @@ def option_record(state: dict[str, Any], state_path: Path) -> None:
         return
 
 
+def option_can(state: dict[str, Any]) -> None:
+    scope = prompt_scope(state, remember_key="pure.can.scope", allow_dual=True)
+    if scope is None:
+        return
+    role_menu = MenuSpec(
+        title="\n启用哪些 CAN 接口？",
+        options=(MenuOption("1", "主臂和从臂", "both"), MenuOption("2", "仅主臂", "leader"),
+                 MenuOption("3", "仅从臂", "follower")),
+        remember_key="pure.can.roles",
+    )
+    choice = prompt_choice_menu(state, role_menu)
+    if choice is None:
+        return
+    role = choice_menu_value(role_menu, choice)
+    interfaces = selected_can_interfaces(scope, ("leader", "follower") if role == "both" else (role,))
+    try:
+        bitrate = can_setup.configured_bitrate()
+    except ValueError as exc:
+        print(f"[CAN] {exc}")
+        pause()
+        return
+    print_rows("启用 CAN 接口", [*interfaces.items(), ("目标波特率", f"{bitrate} bit/s")])
+    if prompt_text("按 Enter 启用接口，输入 b 返回") is None:
+        return
+    enable_selected_can(interfaces, bitrate)
+    pause()
+
+
 def option_activation(state: dict[str, Any], state_path: Path) -> None:
     mode_menu = MenuSpec(title="\n激活类型:", options=(MenuOption("1", "follower", "1"), MenuOption("2", "leader", "2")), default="1", remember_key="pure.activation.mode")
     mode_choice = prompt_choice_menu(state, mode_menu)
@@ -933,6 +985,7 @@ def option_activation(state: dict[str, Any], state_path: Path) -> None:
         return
     gripper_min_width_m = prompt_gripper_min_width_guard(state, role=activation_mode_role(mode))
     try:
+        bitrate = can_setup.configured_bitrate()
         title, cmd, script, rows = build_activation_command(
             mode,
             scope,
@@ -942,8 +995,7 @@ def option_activation(state: dict[str, Any], state_path: Path) -> None:
         print(f"[teleop] ERROR: 构建命令失败: {type(exc).__name__}: {exc}")
         pause()
         return
-    state.setdefault("activation", {})["last_run_tag"] = local_tag()
-    save_state(state_path, state)
+    rows.append(("启动前自动启用 CAN", f"{bitrate} bit/s"))
     print_rows(f"[teleop] {title}", rows)
     print("command:")
     for line in script.splitlines():
@@ -952,6 +1004,12 @@ def option_activation(state: dict[str, Any], state_path: Path) -> None:
     if raw is None:
         return
     try:
+        interfaces = selected_can_interfaces(scope, (activation_mode_role(mode),))
+        if not enable_selected_can(interfaces, bitrate):
+            pause()
+            return
+        state.setdefault("activation", {})["last_run_tag"] = local_tag()
+        save_state(state_path, state)
         rc = run_interactive(cmd, env={"PYTHONNOUSERSITE": "1"}, print_command=False)
     except KeyboardInterrupt:
         print("\n[teleop] 已停止。")
@@ -965,6 +1023,7 @@ def option_activation(state: dict[str, Any], state_path: Path) -> None:
 ROOT_MENU = MenuSpec(
     title="NERO 遥操作与示范采集",
     options=(MenuOption("1", "录制 episode", "record"),
+             MenuOption("4", "按配置启用 CAN 接口", "can"),
              MenuOption("5", "Teleop 激活（主臂 / 从臂）", "activation")),
     default="1",
     remember_key="pure_teleop.root",
@@ -986,8 +1045,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     state = load_state(state_path)
     try:
         while (choice := prompt_choice_menu(state, ROOT_MENU)) is not None:
-            if choice_menu_value(ROOT_MENU, choice) == "record":
+            action = choice_menu_value(ROOT_MENU, choice)
+            if action == "record":
                 option_record(state, state_path)
+            elif action == "can":
+                option_can(state)
             else:
                 option_activation(state, state_path)
             save_state(state_path, state)

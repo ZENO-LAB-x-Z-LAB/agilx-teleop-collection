@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import math
+import os
 import threading
 import time
 from typing import List, Optional, Tuple
@@ -920,6 +921,8 @@ class NeroCtrlNode(Node):
     def _init_arm(self):
         forced_firmware_version = _normalize_nero_firmware_profile(self.firmware_profile)
         config_kwargs = {"robot": "nero", "comm": "can", "channel": self.can_port}
+        if "NERO_CAN_BITRATE" in os.environ:
+            config_kwargs["bitrate"] = int(os.environ["NERO_CAN_BITRATE"])
         if forced_firmware_version is not None:
             config_kwargs["firmeware_version"] = forced_firmware_version
 
@@ -960,12 +963,8 @@ class NeroCtrlNode(Node):
 
         if forced_firmware_version is None and firmware_version != NeroFW.DEFAULT:
             self.agx_arm.disconnect()
-            config = create_agx_arm_config(
-                robot="nero",
-                comm="can",
-                channel=self.can_port,
-                firmeware_version=firmware_version,
-            )
+            config_kwargs["firmeware_version"] = firmware_version
+            config = create_agx_arm_config(**config_kwargs)
             self.agx_arm = AgxArmFactory.create_arm(config)
             self.agx_arm.connect()
             self.arm_joint_names = list(config["joint_limits"].keys())

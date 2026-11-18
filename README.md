@@ -40,18 +40,18 @@ ip -details link show type can
 | 采集设备或设置 | 需要配置的内容 |
 | --- | --- |
 | 单侧主从臂 | 一侧需要两路可区分的 SocketCAN 接口。例如做右臂示教，把右主臂和右从臂对应的接口分别填入 `NERO_RIGHT_LEADER_CAN` 和 `NERO_RIGHT_FOLLOWER_CAN`。 |
-| 双臂 | 配置左右共四个接口。模板中 `can_ml`、`can_sl`、`can_mr`、`can_sr` 是示例名称。驱动预设使用 1 Mbit/s，激活前按接线核对角色、接口状态和比特率。 |
+| 双臂 | 配置左右共四个接口。模板中 `can_ml`、`can_sl`、`can_mr`、`can_sr` 是示例名称。按接线核对角色。`NERO_CAN_BITRATE` 是接口和驱动共用的波特率，默认 `1000000` bit/s，应与机械臂的设置一致。 |
 | USB 相机 | 首次录制时在预览中依次选择左腕、右腕、顶部，或当前模式提示的角色。默认按序列号保存映射。相同或缺失序列号的设备可设 `CAMERA_ROLE_IDENTITY=usb-port` 并使用固定 USB 端口。更换设备时可用 `--force-camera-select` 重新选择。 |
 | 数据目录与 ROS 域 | `PURE_TELEOP_ROSBAG_ROOT` 指向示范保存目录。主臂、从臂、相机和录制器使用相同的 `ROS_DOMAIN_ID`。 |
 | 夹爪触觉（可选） | TUI 可以预览串口并选择传感器。脚本模式把触觉模板复制为同目录的 `tactile_sensors.local.yaml`，为目标填入实际端口，启用对应条目并设 `publish_raw_points: true`。串口用户需有设备读写权限。[触觉模板](agx_arm_ros/src/piper_nero_teleop/config/tactile_sensors.example.yaml) |
 
-如已确认映射且对应 CAN 接口处于 DOWN，可逐个启用。下面以已配好的右从臂接口为例。
+### 在 TUI 中启用 CAN
 
-```bash
-source scripts/env/pure_teleop_env.sh
-sudo ip link set dev "$NERO_RIGHT_FOLLOWER_CAN" up type can bitrate 1000000
-ip -details link show dev "$NERO_RIGHT_FOLLOWER_CAN"
-```
+日常遥操直接选 **5 · Teleop 激活**。确认后，TUI 会先按配置启用本次所选角色和左右侧的接口，成功后启动遥操。例如选右从臂时只处理 `NERO_RIGHT_FOLLOWER_CAN`。从旧版更新的工作目录，先运行一次 `./scripts/build_ros2.sh --build-only` 以更新驱动节点。
+
+如需在启动机械臂前单独准备总线，选 **4 · 按配置启用 CAN 接口**，选择左侧、右侧或双侧，再选主从一起、仅主臂或仅从臂。核对显示的接口与波特率并按 Enter。以右侧主从为例，按 **4 → 2 → 1** 即可一次准备两路接口。
+
+已按配置启用的接口可直接复用。普通用户首次启用处于 DOWN 的接口时可能会看到 sudo 密码提示。接口名称不存在时，核对 `config/local.env` 和接线。如果正在运行的接口波特率与配置不同，TUI 会显示实际值并停止此次启动，让操作者在结束正在使用该总线的任务后调整。
 
 ## 录一段示范
 
