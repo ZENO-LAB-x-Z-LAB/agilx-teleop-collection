@@ -1,0 +1,14 @@
+joint_names: [joint1, joint2, joint3, joint4, joint5, joint6, joint7]
+gripper_joint_name: gripper
+model_package: agx_arm_urdf
+model_relpath: nero/urdf/nero_with_gripper_description.xacro
+clip_to_limits: true
+limit_warn_tol: 0.0001
+limit_push_warn_margin: 0.15
+unwrap_joint_positions: true
+max_joint_step: 0.0
+max_torque_delta_warn: 4.0
+gravity_joint_scale: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+gravity_joint_sign: [1.0, -1.0, 1.0, -1.0, 1.0, 1.0, 1.0]
+gravity_joint_position_scale: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+gravity_joint_offset: [0.0, 0.15, -0.2, 0.0, 0.0, 0.0, 0.0]

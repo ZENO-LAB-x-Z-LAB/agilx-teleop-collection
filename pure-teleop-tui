@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$root/scripts/env/pure_teleop_env.sh"
+export PYTHONPATH="$root/scripts${PYTHONPATH:+:$PYTHONPATH}"
+exec "$PURE_TELEOP_ROS2_PYTHON" -m pure_teleop.internal.pure_teleop_tui "$@"

@@ -1,0 +1,42 @@
+teleop_ns: teleop_arm
+robot_ns: robot_arm
+can_port: can0
+control_mode: normal
+auto_enable: true
+fast_mode: true
+speed_percent: 100
+pub_rate: 200
+enable_timeout: 5.0
+tcp_offset: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+publish_gripper_joint: true
+control_rate_hz: 200.0
+joint_names: [joint1, joint2, joint3, joint4, joint5, joint6, joint7]
+prefer_leader_joint_angles: false
+joint_lower_limits: [-2.705261, -1.745330, -2.757621, -1.012291, -2.757621, -0.733039, -1.570797]
+joint_upper_limits: [2.705261, 1.745330, 2.757621, 2.146755, 2.757621, 0.959932, 1.570797]
+enable_pos: true
+enable_tor: true
+enable_gravity: true
+gravity_mix_mode: additive
+kp: [0.02, 0.1, 0.15, 0.1, 0.1, 0.1, 0.08]
+kd: [0.02, 0.03, 0.01, 0.02, 0.02, 0.02, 0.02]
+kp_follow: [8.0, 8.0, 8.0, 8.0, 8.0, 8.0, 8.0]
+torque_scale: [0.5, 0.15, 0.6, 0.5, 0.15, 0.6, 0.2]
+torque_feedback_sign: [-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0]
+max_torque_abs: [6.0, 6.0, 6.0, 4.0, 4.0, 3.0, 2.0]
+clip_to_limits: true
+unwrap_joint_positions: true
+max_joint_step: 0.0
+robot_feedback_timeout_sec: 0.2
+robot_feedback_restore_ramp_sec: 0.5
+hold_position_when_feedback_inactive: true
+gripper_follow_force_default: 3.0
+gripper_haptic_effort_sign: -1.0
+gripper_haptic_effort_deadband: 0.15
+gripper_haptic_effort_bias: 0.0
+gripper_haptic_effort_alpha: 0.2
+gripper_haptic_effort_max: 3.0
+gripper_haptic_release_when_opening: true
+gripper_haptic_opening_relief: 0.15
+gripper_haptic_opening_sign: 1.0
+gripper_haptic_opening_direction_eps: 0.0001

@@ -1,0 +1,9 @@
+robot_ns: robot_arm
+can_port: can1
+auto_enable: true
+fast_mode: true
+speed_percent: 100
+pub_rate: 200
+enable_timeout: 5.0
+tcp_offset: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+publish_gripper_joint: true

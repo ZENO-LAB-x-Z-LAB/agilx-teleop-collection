@@ -1,0 +1,37 @@
+tactile_sensor_node:
+  ros__parameters:
+    publish_rate_hz: 50.0
+    baudrate: 921600
+    serial_timeout_sec: 0.04
+    calibrate_on_start: false
+    contact_lowpass_alpha: 0.35
+    publish_raw_points: false
+    sensors_json: >
+      [
+        {
+          "name": "slave_left_gripper",
+          "enabled": false,
+          "robot_ns": "slave_left",
+          "finger": "gripper",
+          "port": "",
+          "serial": "",
+          "model": "M2020_elite",
+          "point_count": 9,
+          "normal_axis": "z",
+          "normal_sign": 1.0,
+          "deadband_n": 0.0
+        },
+        {
+          "name": "slave_right_gripper",
+          "enabled": false,
+          "robot_ns": "slave_right",
+          "finger": "gripper",
+          "port": "",
+          "serial": "",
+          "model": "M2020_elite",
+          "point_count": 9,
+          "normal_axis": "z",
+          "normal_sign": 1.0,
+          "deadband_n": 0.0
+        }
+      ]
