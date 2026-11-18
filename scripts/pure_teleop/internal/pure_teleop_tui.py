@@ -36,7 +36,7 @@ DEFAULT_ROSBAG_ROOT = Path(
 ).expanduser()
 
 
-PURE_TELEOP_TITLE = "NERO 遥操作与示范采集"
+PURE_TELEOP_TITLE = "AgileX 遥操作与示范采集"
 
 
 DEFAULT_TACTILE_PORTS = tuple(
@@ -1021,10 +1021,10 @@ def option_activation(state: dict[str, Any], state_path: Path) -> None:
 
 
 ROOT_MENU = MenuSpec(
-    title="NERO 遥操作与示范采集",
-    options=(MenuOption("1", "录制 episode", "record"),
+    title=PURE_TELEOP_TITLE,
+    options=(MenuOption("1", "录制 episode（NERO 预设）", "record"),
              MenuOption("4", "按配置启用 CAN 接口", "can"),
-             MenuOption("5", "Teleop 激活（主臂 / 从臂）", "activation")),
+             MenuOption("5", "NERO Teleop 激活（主臂 / 从臂）", "activation")),
     default="1",
     remember_key="pure_teleop.root",
     suffix="q 退出",

@@ -1,12 +1,17 @@
-# NERO 遥操作示范采集
+# agilx-teleop-collection
 
-用主臂示教、从臂执行，把关节实测值、发给从臂的动作指令和所选相机图像录到同一份 ROS 2 MCAP。每段示范单独保存，训练用数据可以从 MCAP 离线导出。仓库包含 NERO 与夹爪的 CAN 驱动、机器人模型、单臂和双臂启动脚本、USB 相机选择器、可选触觉采集，以及键盘录制器。
+面向 AgileX 机械臂的 ROS 2 遥操作数据采集工具。键盘录制器将关节实测值、动作指令和相机图像按示范分段保存为 MCAP。已有遥操驱动的机械臂可以直接接入其 ROS 2 话题。
 
-**第一次使用可以先跑无硬件自测。已有遥操系统在发布 ROS 2 话题的用户，可以直接跳到“录一段示范”。**
+仓库目前内置 NERO 主从臂和夹爪的 CAN 驱动、机器人模型、单臂和双臂启动脚本，以及 USB 相机、触觉采集和 LeRobot 导出预设。
 
 ## 安装与无硬件自测
 
-交付的源码包可直接解压使用。收到离线 Git 仓库（`.bundle`）时，运行 `git clone <bundle文件路径> nero-teleop-collection`，再进入 `nero-teleop-collection` 目录。
+```bash
+git clone https://github.com/ZENO-LAB-x-Z-LAB/agilx-teleop-collection.git
+cd agilx-teleop-collection
+```
+
+离线交付的源码包可直接解压使用。收到 `.bundle` 文件时，可以用 `git clone 路径/文件.bundle agilx-teleop-collection` 克隆到同名目录。
 
 验证环境是 Ubuntu 24.04、ROS 2 Jazzy、系统 Python 3.12。先安装 ROS 2 Jazzy Desktop，下面的命令在仓库根目录运行。采集与回读使用系统 Python，LeRobot 是导出时才需要的依赖。[ROS 2 Jazzy 安装说明](https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debs.html)
 
@@ -26,7 +31,20 @@ source scripts/env/pure_teleop_env.sh
 
 构建脚本使用 rosdep 安装包清单中的依赖（含 Pinocchio、xacro），再构建 5 个包。依赖已经齐备的离线机器可以运行 `./scripts/build_ros2.sh --build-only`。自测在本机独立话题下发布已知关节值、动作和 JPEG，通过正式录制入口模拟按键保存两个 episode，再逐条解码校验。成功后打印两行 `state=… action=… jpeg=…`。测试数据写在临时目录。
 
-## 配置自己的设备
+## 录制已有遥操系统的 ROS 2 话题
+
+在能看到机械臂和相机话题的终端运行 `ros2 topic list -t`，找出实际的状态、动作指令和图像话题。将下面的三个示例名称替换为现场名称。录制器直接订阅这些话题，使用已有的驱动和相机发布节点。
+
+```bash
+./scripts/record_current_pure_teleop_rosbag2.sh --skip-camera --skip-tactile --name demo_arm \
+  -- --required-topic /arm/joint_states \
+     --required-topic /arm/joint_commands \
+     --required-topic /wrist_camera/image_raw/compressed
+```
+
+按空格后，录制器会逐一检查必采话题能否收到消息。看到 `[record] START` 后开始示教，再按空格保存，按 `Q` 退出。
+
+## 配置 NERO 主从臂和传感器
 
 ```bash
 cp config/hardware.env.example config/local.env
@@ -53,7 +71,7 @@ ip -details link show type can
 
 已按配置启用的接口可直接复用。普通用户首次启用处于 DOWN 的接口时可能会看到 sudo 密码提示。接口名称不存在时，核对 `config/local.env` 和接线。如果正在运行的接口波特率与配置不同，TUI 会显示实际值并停止此次启动，让操作者在结束正在使用该总线的任务后调整。
 
-## 录一段示范
+## 用 NERO 主从臂录一段示范
 
 在仓库根目录的三个终端分别运行 `./pure-teleop-tui`。前两个终端运行硬件控制，最后一个负责记录。激活前核对屏幕上显示的角色、左右侧和 CAN 端口，确认现场可使能机械臂。默认使用 NERO `v112` 固件控制预设。
 
